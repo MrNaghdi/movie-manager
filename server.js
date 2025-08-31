@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const app = require('./app');
 
-// خواندن متغیرهای env
+// Read .env
 dotenv.config({ path: './config.env' });
 
-// اتصال به MongoDB
+// Connect to MongoDB
 mongoose.connect(process.env.DATABASE, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -13,7 +13,7 @@ mongoose.connect(process.env.DATABASE, {
 .then(() => console.log('MongoDB connected!'))
 .catch(err => console.log(err));
 
-// روشن کردن سرور
+// Turn on server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`App running on port ${port}...`);
