@@ -1,110 +1,69 @@
-const Movie = require("../models/movieModel");
+const Movie = require('../models/movieModel');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
-// get all movies
-exports.getAllMovies = async (req, res) => {
-  try {
-    const movies = await Movie.find();
-    res.status(200).json({
-      status: "Successful find movies",
-      movies: movies
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: "fail",
-      message: err.message,
-    });
+// Get all movies
+exports.getAllMovies = catchAsync(async (req, res, next) => {
+  const movies = await Movie.find();
+
+  res.status(200).json({
+    status: 'success',
+    results: movies.length,
+    data: movies
+  });
+});
+
+// Create a new movie
+exports.createMovie = catchAsync(async (req, res, next) => {
+  const newMovie = await Movie.create(req.body);
+
+  res.status(201).json({
+    status: 'success',
+    data: newMovie
+  });
+});
+
+// Get a single movie
+exports.getMovie = catchAsync(async (req, res, next) => {
+  const movie = await Movie.findById(req.params.id);
+
+  if (!movie) {
+    return next(new AppError('No movie found with that ID', 404));
   }
-};
 
-//create new movie
-exports.createMovie = async (req, res) => {
-  try {
-    const newMovie = await Movie.create(req.body);
-    res.status(201).json({
-      status: "Successful create new movie",
-      movie: newMovie
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: "fail",
-      message: err.message,
-    });
+  res.status(200).json({
+    status: 'success',
+    data: movie
+  });
+});
+
+// Update a movie
+exports.updateMovie = catchAsync(async (req, res, next) => {
+  const movie = await Movie.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  });
+
+  if (!movie) {
+    return next(new AppError('No movie found with that ID', 404));
   }
-};
 
-//get a movie
-exports.getMovie = async (req, res) => {
-    try {
-        const movie = await Movie.findById(req.params.id);
+  res.status(200).json({
+    status: 'success',
+    data: movie
+  });
+});
 
-    if (!movie) {
-      return res.status(404).json({
-        status: "fail",
-        message: "Movie not found",
-      });
-    }
+// Delete a movie
+exports.deleteMovie = catchAsync(async (req, res, next) => {
+  const movie = await Movie.findByIdAndDelete(req.params.id);
 
-    res.status(200).json({
-      status: "Successful find movie",
-      movie,   
-    });
-      } catch (err) {
-        res.status(404).json({
-          status: "fail",
-          message: "not found movie",
-        });
-      }
-};
+  if (!movie) {
+    return next(new AppError('No movie found with that ID', 404));
+  }
 
-//update a movie
-exports.updateMovie = async (req, res) => {
-    try {
-        const movie = await Movie.findByIdAndUpdate(
-          req.params.id,       
-          req.body,          
-          { new: true, runValidators: true }  
-        );
-    
-        if (!movie) {   
-          return res.status(404).json({
-            status: "fail",
-            message: "Movie not found",
-          });
-        }
-    
-        res.status(200).json({
-          status: "Movie updated successfully",
-          movie,
-        });
-      } catch (err) {
-        res.status(500).json({
-          status: "error",
-          message: err.message,
-        });
-      }
-};
-
-//delete a movie
-exports.deleteMovie = async (req, res) => {
-    try {
-        const movie = await Movie.findByIdAndDelete(req.params.id);
-    
-        if (!movie) {
-          return res.status(404).json({
-            status: "fail",
-            message: "Movie not found",
-          });
-        }
-    
-        res.status(204).json({
-          status: "Movie deleted successfully",
-          data: null, 
-        });
-      } catch (err) {
-        res.status(500).json({
-          status: "error",
-          message: err.message,
-        });
-      }
-    
-};
+  res.status(204).json({
+    status: 'success',
+    data: null
+  });
+});
