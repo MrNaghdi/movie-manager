@@ -1,8 +1,7 @@
 const mongoose = require("mongoose");
-const { type } = require("os");
 
 //defind movie model
-const movieSchema = mongoose.Schema({
+const movieSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: ["movie", "series"],

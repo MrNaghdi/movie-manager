@@ -1,5 +1,6 @@
 const express = require("express");
 const movieRouter = require("./routes/movieRoutes");
+const userRouter = require("./routes/userRoutes");
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./middlewares/errorController');
 const app = express();
@@ -9,6 +10,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/v1/movies", movieRouter);
+app.use("/api/v1/users", userRouter);
 
 app.all(/.*/, (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
