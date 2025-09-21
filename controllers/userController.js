@@ -19,6 +19,10 @@ exports.getUser = catchAsync(async (req, res, next) => {
   if (!user) {
     return next(new AppError("user is not found", 404));
   }
+  if (req.user.role !== "admin" && req.user._id.toString() !== req.params.id) {
+    return next(new AppError("You do not have permission to view this user", 403));
+  }
+  
   res.status(200).json({
     status: "success",
     data: user,

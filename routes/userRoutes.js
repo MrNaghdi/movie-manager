@@ -3,16 +3,26 @@ const userController = require("../controllers/userController");
 const authController = require("../controllers/authController");
 const router = express.Router();
 
+router.route("/signup").post(authController.signup);
+router.route("/login").post(authController.login);
 
-router.route('/signup').post(authController.signup)
-router.route('/login').post(authController.login)
-router
-  .route("/")
-  .get(userController.getAllUsers)
+// Forgot & Reset Password
+router.post("/forgotPassword", authController.forgotPassword);
+router.patch("/resetPassword/:token", authController.resetPassword);
+
+router.route("/").get(authController.protect, authController.restrictTo("admin"), userController.getAllUsers);
 router
   .route("/:id")
-  .get(userController.getUser)
-  .patch(userController.updateUser)
-  .delete(userController.deleteUser);
+  .get(authController.protect, userController.getUser)
+  .patch(
+    authController.protect,
+    authController.restrictTo("admin"),
+    userController.updateUser
+  )
+  .delete(
+    authController.protect,
+    authController.restrictTo("admin"),
+    userController.deleteUser
+  );
 
 module.exports = router;

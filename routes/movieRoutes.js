@@ -1,17 +1,34 @@
-const express = require('express');
-const movieController = require('../controllers/movieController');
+const express = require("express");
+const movieController = require("../controllers/movieController");
+const authController = require("../controllers/authController");
+
 const router = express.Router();
 
-// GET, POST, UPDATE, DELETE movie
+// Public routes (anyone can access)
+router.route("/").get(movieController.getAllMovies);
+
+router.route("/:id").get(movieController.getMovie);
+
+// Protected routes (only logged in users)
 router
-  .route('/')
-  .get(movieController.getAllMovies)
-  .post(movieController.createMovie);
+  .route("/")
+  .post(
+    authController.protect,
+    authController.restrictTo("admin"),
+    movieController.createMovie
+  );
 
 router
-  .route('/:id')
-  .get(movieController.getMovie)
-  .put(movieController.updateMovie)
-  .delete(movieController.deleteMovie);
+  .route("/:id")
+  .put(
+    authController.protect,
+    authController.restrictTo("admin"),
+    movieController.updateMovie
+  )
+  .delete(
+    authController.protect,
+    authController.restrictTo("admin"),
+    movieController.deleteMovie
+  );
 
 module.exports = router;
