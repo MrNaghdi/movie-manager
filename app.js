@@ -8,12 +8,16 @@ const movieRouter = require("./routes/movieRoutes");
 const userRouter = require("./routes/userRoutes");
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./middlewares/errorController');
+
 const app = express();
 
-//Set security HTTP headers
+// Body parser
+app.use(express.json());
+
+// Security headers
 app.use(helmet());
 
-//Limit requests from same API
+// Rate limiting
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
@@ -21,16 +25,21 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-//Body parser, reading data from body into req.body
-app.use(express.json({ limit: '10kb' }));
+// Data sanitization against NoSQL query injection
+app.use((req, res, next) => {
+  if (req.body) req.body = mongoSanitize.sanitize(req.body);
+  if (req.params) req.params = mongoSanitize.sanitize(req.params);
+  next();
+});
 
-//Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
+// Data sanitization against XSS (just body , params)
+app.use((req, res, next) => {
+  if (req.body) req.body = xss(req.body);
+  if (req.params) req.params = xss(req.params);
+  next();
+});
 
-//Data sanitization against XSS
-app.use(xss());
-
-//Prevent parameter pollution
+// Prevent parameter pollution
 app.use(hpp({
   whitelist: ['duration', 'price']
 }));

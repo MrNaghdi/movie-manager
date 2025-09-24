@@ -1,17 +1,24 @@
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
+const APIFeatures = require('../utils/APIFeatures');
 const AppError = require("../utils/appError");
 
 //GET All Users
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+  const features = new APIFeatures(User.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const users = await features.query;
+
   res.status(200).json({
     status: "success",
     results: users.length,
     data: users,
   });
 });
-
 
 //GET User
 exports.getUser = catchAsync(async (req, res, next) => {
@@ -20,9 +27,11 @@ exports.getUser = catchAsync(async (req, res, next) => {
     return next(new AppError("user is not found", 404));
   }
   if (req.user.role !== "admin" && req.user._id.toString() !== req.params.id) {
-    return next(new AppError("You do not have permission to view this user", 403));
+    return next(
+      new AppError("You do not have permission to view this user", 403)
+    );
   }
-  
+
   res.status(200).json({
     status: "success",
     data: user,
@@ -58,7 +67,7 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
   });
 });
 
-//Update user
+//Update me for user
 exports.updateMe = catchAsync(async (req, res, next) => {
   // Not update password
   if (req.body.password || req.body.confirmPassword) {
@@ -68,25 +77,25 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   // just set name and email
   const filteredBody = {
     name: req.body.name,
-    email: req.body.email
+    email: req.body.email,
   };
-
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
-    runValidators: true
+    runValidators: true,
   });
 
   res.status(200).json({
     status: "success",
-    data: { user: updatedUser }
+    data: { user: updatedUser },
   });
 });
 
+// DeActive user
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
 
   res.status(204).json({
-    status: 'success',
-    data: null
+    status: "success",
+    data: null,
   });
 });

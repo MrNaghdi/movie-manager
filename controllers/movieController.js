@@ -1,15 +1,22 @@
 const Movie = require('../models/movieModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const APIFeatures = require('../utils/APIFeatures');
 
 // Get all movies
 exports.getAllMovies = catchAsync(async (req, res, next) => {
-  const movies = await Movie.find();
+  const features = new APIFeatures(Movie.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const movies = await features.query;
 
   res.status(200).json({
-    status: 'success',
+    status: "success",
     results: movies.length,
-    data: movies
+    data: movies,
   });
 });
 
