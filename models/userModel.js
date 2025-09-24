@@ -40,6 +40,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false, // تا توی خروجی‌ها نمایش داده نشه
+  },
 });
 
 // Hash User Password
@@ -89,6 +94,12 @@ userSchema.methods.createPasswordResetToken = function () {
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 min
   return resetToken;
 };
+
+//Find active user
+userSchema.pre(/^find/, function (next) {
+  this.find({ active: { $ne: false } });
+  next();
+});
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;

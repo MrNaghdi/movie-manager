@@ -57,3 +57,36 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+//Update user
+exports.updateMe = catchAsync(async (req, res, next) => {
+  // Not update password
+  if (req.body.password || req.body.confirmPassword) {
+    return next(new AppError("This route is not for password updates!", 400));
+  }
+
+  // just set name and email
+  const filteredBody = {
+    name: req.body.name,
+    email: req.body.email
+  };
+
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: { user: updatedUser }
+  });
+});
+
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user.id, { active: false });
+
+  res.status(204).json({
+    status: 'success',
+    data: null
+  });
+});
